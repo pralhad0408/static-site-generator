@@ -57,3 +57,6 @@ class TestParentNode(unittest.TestCase):
             parent_node.to_html(),
             '<div class="container"><span>hello</span></div>',
         )
+
+if __name__ == "__main__":
+    unittest.main()
