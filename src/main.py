@@ -29,6 +29,27 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     with open(dest_path, "w") as f:
         f.write(full_html)
 
+def generate_pages_recursive(
+        dir_path_content: str,
+        template_path: str,
+        dest_dir_path:str,
+) -> None:
+    for item in os.listdir(dir_path_content):
+        content_path = os.path.join(dir_path_content, item)
+        dest_path = os.path.join(dest_dir_path, item)
+
+        if os.path.isfile(content_path):
+            if content_path.endswith(".md"):
+                dest_path = os.path.splitext(dest_path)[0] + ".html"
+                generate_page(content_path, template_path, dest_path)
+        else:
+            os.makedirs(dest_path, exist_ok=True)
+            generate_pages_recursive(
+                content_path,
+                template_path,
+                dest_path,
+            )
+
 def copy_static_to_public(src: str, dst: str) -> None:
     if os.path.exists(dst):
         shutil.rmtree(dst)
@@ -52,7 +73,11 @@ def copy_directory(src: str, dst: str) -> None:
 
 def main():
     copy_static_to_public("static", "public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive(
+        "content",
+        "template.html",
+        "public",
+    )
 
 if __name__ == "__main__":
     main()
