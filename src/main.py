@@ -1,10 +1,16 @@
 import os
 import shutil
+import sys
 
 from extract_title import extract_title
 from markdown_to_html_node import markdown_to_html_node
 
-def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
+def generate_page(
+        from_path: str, 
+        template_path: str, 
+        dest_path: str,
+        base_path:str,
+    ) -> None:
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     with open(from_path, "r") as f:
@@ -21,6 +27,16 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     full_html = template.replace("{{ Title }}", title)
     full_html = full_html.replace("{{ Content }}", html)
 
+    full_html = full_html.replace(
+        'href="/',
+        f'href="{base_path}',
+    )
+
+    full_html = full_html.replace(
+        'src="/',
+        f'src="{base_path}',
+    )
+
     dest_dir = os.path.dirname(dest_path)
 
     if dest_dir:
@@ -33,6 +49,7 @@ def generate_pages_recursive(
         dir_path_content: str,
         template_path: str,
         dest_dir_path:str,
+        base_path: str,
 ) -> None:
     for item in os.listdir(dir_path_content):
         content_path = os.path.join(dir_path_content, item)
@@ -41,13 +58,19 @@ def generate_pages_recursive(
         if os.path.isfile(content_path):
             if content_path.endswith(".md"):
                 dest_path = os.path.splitext(dest_path)[0] + ".html"
-                generate_page(content_path, template_path, dest_path)
+                generate_page(
+                    content_path, 
+                    template_path, 
+                    dest_path, 
+                    base_path,
+                )
         else:
             os.makedirs(dest_path, exist_ok=True)
             generate_pages_recursive(
                 content_path,
                 template_path,
                 dest_path,
+                base_path,
             )
 
 def copy_static_to_public(src: str, dst: str) -> None:
@@ -72,11 +95,17 @@ def copy_directory(src: str, dst: str) -> None:
             copy_directory(src_path, dst_path)
 
 def main():
+    if len(sys.argv) > 1:
+        base_path = sys.argv[1]
+    else:
+        base_path = "/"
+
     copy_static_to_public("static", "public")
     generate_pages_recursive(
         "content",
         "template.html",
         "public",
+        base_path,
     )
 
 if __name__ == "__main__":
