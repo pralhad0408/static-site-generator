@@ -100,11 +100,11 @@ def main():
     else:
         base_path = "/"
 
-    copy_static_to_public("static", "public")
+    copy_static_to_public("static", "docs")
     generate_pages_recursive(
         "content",
         "template.html",
-        "public",
+        "docs",
         base_path,
     )
 
